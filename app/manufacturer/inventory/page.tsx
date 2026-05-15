@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import KpiCard from "@/components/KpiCard";
 import { Card, CardBody, Input } from "@/components/ui";
@@ -11,6 +12,7 @@ interface InventoryItem {
   id: string;
   name: string;
   batchNo: string;
+  lotId?: string;
   expiry: string;
   inStock: number;
   reserved: number;
@@ -19,8 +21,8 @@ interface InventoryItem {
 }
 
 const INITIAL_INVENTORY: InventoryItem[] = [
-  { id: "INV001", name: "Amoxicillin 500mg", batchNo: "AMX-2026-003", expiry: "2028-03-31", inStock: 48000, reserved: 12000, unit: "Viên", capacity: 60000 },
-  { id: "INV002", name: "Paracetamol 650mg", batchNo: "PCT-2026-007", expiry: "2027-12-31", inStock: 6000, reserved: 4000, unit: "Viên", capacity: 80000 },
+  { id: "INV001", name: "Amoxicillin 500mg", batchNo: "AMX-2026-003", lotId: "LOT-2026-001", expiry: "2028-03-31", inStock: 48000, reserved: 12000, unit: "Viên", capacity: 60000 },
+  { id: "INV002", name: "Paracetamol 650mg", batchNo: "PCT-2026-007", lotId: "LOT-2026-002", expiry: "2027-12-31", inStock: 6000, reserved: 4000, unit: "Viên", capacity: 80000 },
   { id: "INV003", name: "Metformin 850mg", batchNo: "MET-2026-002", expiry: "2028-06-30", inStock: 22000, reserved: 8000, unit: "Viên", capacity: 50000 },
   { id: "INV004", name: "Atorvastatin 20mg", batchNo: "ATV-2026-005", expiry: "2028-09-30", inStock: 31000, reserved: 5000, unit: "Viên", capacity: 40000 },
   { id: "INV005", name: "Omeprazole 20mg", batchNo: "OMP-2026-004", expiry: "2027-08-31", inStock: 9000, reserved: 6000, unit: "Viên", capacity: 45000 },
@@ -193,7 +195,18 @@ export default function ManufacturerInventoryPage() {
                         <p className="text-sm font-semibold text-[#10231C]">{item.name}</p>
                         <p className="text-[10px] text-[#6B7A73]">{item.unit}</p>
                       </td>
-                      <td className="px-4 py-3 text-sm text-[#6B7A73] font-mono">{item.batchNo}</td>
+                      <td className="px-4 py-3 text-sm font-mono">
+                        {item.lotId ? (
+                          <Link
+                            href={`/manufacturer/inventory/${item.lotId}`}
+                            className="text-[#6D28D9] hover:underline hover:text-violet-900 transition-colors"
+                          >
+                            {item.batchNo}
+                          </Link>
+                        ) : (
+                          <span className="text-[#6B7A73]">{item.batchNo}</span>
+                        )}
+                      </td>
                       <td className="px-4 py-3">
                         <p className="text-sm text-[#10231C]">{item.expiry}</p>
                         <p className={`text-[10px] font-medium ${daysLeft < 180 ? "text-amber-600" : "text-[#6B7A73]"}`}>

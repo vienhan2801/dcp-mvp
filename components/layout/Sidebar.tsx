@@ -6,6 +6,7 @@ import {
   ClipboardList, MessageSquare, Package, BarChart2, FlaskConical,
   Factory, Warehouse, BookOpen, Store, Gavel, Bell, BarChart3,
   Tag, Shield, ScrollText, KeyRound, GitBranch, Users, Building2,
+  AlertCircle,
 } from "lucide-react";
 import { useApp } from "@/lib/store";
 import { UserRole } from "@/domain/models/evidence";
@@ -21,6 +22,7 @@ export type SidebarType = "supplier" | "hospital" | "manufacturer" | "pharmacy" 
 
 interface SidebarProps {
   type: SidebarType;
+  onClose?: () => void;
 }
 
 // ─── Portal accent themes ─────────────────────────────────────
@@ -60,6 +62,7 @@ const supplierNav: NavItem[] = [
   // Vận hành
   { label: "Đơn hàng",        href: "/supplier/orders",            icon: <ShoppingCart size={17} /> },
   { label: "Giao hàng",       href: "/supplier/deliveries",        icon: <Truck size={17} /> },
+  { label: "Khiếu nại",       href: "/supplier/complaints",        icon: <AlertCircle size={17} /> },
   { label: "Kho & Lô hàng",   href: "/supplier/warehouse",         icon: <Warehouse size={17} /> },
   { label: "Tổng hợp nhu cầu",href: "/supplier/aggregation",       icon: <BarChart2 size={17} /> },
   // Tài chính
@@ -178,7 +181,7 @@ function filterNavByRole(nav: NavItem[], role: UserRole, type: SidebarType): Nav
   return nav;
 }
 
-export default function Sidebar({ type }: SidebarProps) {
+export default function Sidebar({ type, onClose }: SidebarProps) {
   const pathname = usePathname();
   const { state } = useApp();
   const nav = NAV_MAP[type];
@@ -187,10 +190,10 @@ export default function Sidebar({ type }: SidebarProps) {
   const roleLabel = ROLE_DISPLAY[state.currentRole];
 
   return (
-    <aside className="w-56 bg-white border-r border-[#E4EAE7] flex flex-col">
+    <aside className="w-56 h-full bg-white border-r border-[#E4EAE7] flex flex-col">
       {/* Logo — colored by portal */}
-      <div className="h-16 flex items-center px-5 border-b border-[#E4EAE7]">
-        <div className="flex items-center gap-2.5">
+      <div className="h-16 flex items-center px-5 border-b border-[#E4EAE7] flex-shrink-0">
+        <div className="flex items-center gap-2.5 flex-1">
           <div className={`w-9 h-9 rounded-xl ${style.accentBg} flex items-center justify-center shadow-sm`}>
             <span className="text-lg leading-none">{style.emoji}</span>
           </div>
@@ -201,6 +204,12 @@ export default function Sidebar({ type }: SidebarProps) {
             </div>
           </div>
         </div>
+        {/* Mobile close button */}
+        {onClose && (
+          <button onClick={onClose} className="lg:hidden ml-auto w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[#F6F8F7] text-[#6B7A73]" aria-label="Đóng menu">
+            ✕
+          </button>
+        )}
       </div>
 
       {/* Nav */}

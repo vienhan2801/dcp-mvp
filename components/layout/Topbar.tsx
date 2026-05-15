@@ -4,10 +4,22 @@ import { Bell, Search, LogOut } from "lucide-react";
 import RoleSwitcher from "./RoleSwitcher";
 import { useRouter } from "next/navigation";
 
-export default function Topbar() {
+import { Menu } from "lucide-react";
+
+interface TopbarProps { onMenuClick?: () => void; }
+
+export default function Topbar({ onMenuClick }: TopbarProps) {
   const router = useRouter();
   return (
-    <header className="h-16 bg-white border-b border-[#E4EAE7] flex items-center px-6 gap-4 z-10">
+    <header className="h-16 bg-white border-b border-[#E4EAE7] flex items-center px-4 lg:px-6 gap-3 lg:gap-4 z-10">
+      {/* Hamburger — mobile only */}
+      <button
+        className="lg:hidden flex items-center justify-center w-9 h-9 rounded-lg hover:bg-[#F6F8F7] text-[#6B7A73] flex-shrink-0"
+        onClick={onMenuClick}
+        aria-label="Menu"
+      >
+        <Menu size={20} />
+      </button>
       <div className="flex-1">
         <Input
           placeholder="Tìm kiếm hợp đồng, đơn hàng..."
