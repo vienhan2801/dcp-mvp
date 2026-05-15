@@ -92,7 +92,7 @@ const manufacturerNav: NavItem[] = [
   { label: "Đơn từ NPP",      href: "/manufacturer/orders",     icon: <ShoppingCart size={17} /> },
   { label: "Kho hàng",        href: "/manufacturer/inventory",  icon: <Warehouse size={17} /> },
   { label: "Dự báo & SX",     href: "/manufacturer/forecast",   icon: <BarChart2 size={17} /> },
-  { label: "Công nợ",         href: "/manufacturer/catalog",    icon: <CreditCard size={17} /> },
+  { label: "Công nợ",         href: "/manufacturer/receivables", icon: <CreditCard size={17} /> },
 ];
 
 const pharmacyNav: NavItem[] = [
