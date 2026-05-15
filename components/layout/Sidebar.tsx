@@ -4,7 +4,8 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, FileText, ShoppingCart, Truck, CreditCard,
   ClipboardList, MessageSquare, Package, BarChart2, FlaskConical,
-  Factory, Warehouse, BookOpen, Store,
+  Factory, Warehouse, BookOpen, Store, Gavel, Bell, BarChart3,
+  Tag, Shield, ScrollText, KeyRound, GitBranch, Users,
 } from "lucide-react";
 import { useApp } from "@/lib/store";
 import { UserRole } from "@/domain/models/evidence";
@@ -47,14 +48,28 @@ const PORTAL_STYLE: Record<SidebarType, {
 
 // ─── Nav items per portal ────────────────────────────────────
 const supplierNav: NavItem[] = [
-  { label: "Bảng điều khiển", href: "/supplier/dashboard",     icon: <LayoutDashboard size={17} /> },
-  { label: "Danh mục thuốc",  href: "/supplier/drugs",          icon: <FlaskConical size={17} /> },
-  { label: "Hợp đồng",        href: "/supplier/contracts",      icon: <FileText size={17} /> },
-  { label: "Đơn hàng",        href: "/supplier/orders",         icon: <ShoppingCart size={17} /> },
-  { label: "Giao hàng",       href: "/supplier/deliveries",     icon: <Truck size={17} /> },
-  { label: "Tổng hợp nhu cầu",href: "/supplier/aggregation",    icon: <BarChart2 size={17} /> },
-  { label: "Thanh toán",      href: "/supplier/payments",       icon: <CreditCard size={17} /> },
-  { label: "Nhật ký",         href: "/supplier/evidence-log",   icon: <ClipboardList size={17} /> },
+  // Core
+  { label: "Bảng điều khiển", href: "/supplier/dashboard",        icon: <LayoutDashboard size={17} /> },
+  { label: "Danh mục thuốc",  href: "/supplier/drugs",             icon: <FlaskConical size={17} /> },
+  { label: "Hợp đồng",        href: "/supplier/contracts",         icon: <FileText size={17} /> },
+  { label: "Gói thầu",        href: "/supplier/tender-library",    icon: <Gavel size={17} /> },
+  // Vận hành
+  { label: "Đơn hàng",        href: "/supplier/orders",            icon: <ShoppingCart size={17} /> },
+  { label: "Giao hàng",       href: "/supplier/deliveries",        icon: <Truck size={17} /> },
+  { label: "Kho & Lô hàng",   href: "/supplier/warehouse",         icon: <Warehouse size={17} /> },
+  { label: "Tổng hợp nhu cầu",href: "/supplier/aggregation",       icon: <BarChart2 size={17} /> },
+  // Tài chính
+  { label: "Thanh toán",      href: "/supplier/payments",          icon: <CreditCard size={17} /> },
+  { label: "Bảng giá",        href: "/supplier/price-list",        icon: <Tag size={17} /> },
+  { label: "Hồ sơ pháp lý",   href: "/supplier/legal-docs",        icon: <Shield size={17} /> },
+  // Phân tích
+  { label: "Báo cáo",         href: "/supplier/reports",           icon: <BarChart3 size={17} /> },
+  { label: "Nhật ký",         href: "/supplier/evidence-log",      icon: <ScrollText size={17} /> },
+  { label: "Thông báo",       href: "/supplier/notifications",     icon: <Bell size={17} /> },
+  // Cài đặt
+  { label: "Người dùng",      href: "/supplier/settings/users",    icon: <Users size={17} /> },
+  { label: "Phân quyền",      href: "/supplier/settings/roles",    icon: <KeyRound size={17} /> },
+  { label: "Workflow",        href: "/supplier/settings/workflow",  icon: <GitBranch size={17} /> },
 ];
 
 const hospitalNav: NavItem[] = [

@@ -22,11 +22,20 @@ export type EvidenceActionType =
   | "order_created"
   | "order_confirmed"
   | "order_partially_confirmed"
+  | "order_pending_approval"      // Đơn vào hàng đợi phê duyệt
+  | "order_approved"              // NPP phê duyệt đơn
   | "delivery_updated"
   | "receipt_confirmed"
   | "issue_reported"
+  | "issue_resolved"              // Sự cố được xử lý xong
   | "payment_updated"
-  | "message_sent";
+  | "message_sent"
+  | "contract_approved"           // HĐ phê duyệt bởi cả hai bên
+  | "contract_amended"            // HĐ ký phụ lục / sửa đổi
+  | "tender_imported"             // Gói thầu nhập vào thư viện
+  | "tender_standardized"         // Gói thầu được chuẩn hóa
+  | "drug_created"
+  | "drug_updated";
 
 export interface EvidenceLog {
   id: string;

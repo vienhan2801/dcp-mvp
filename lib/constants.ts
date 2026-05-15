@@ -104,11 +104,20 @@ export const EVIDENCE_ACTION_LABELS: Record<EvidenceActionType, string> = {
   order_created: "Tạo đơn hàng",
   order_confirmed: "Xác nhận đơn",
   order_partially_confirmed: "XN một phần",
+  order_pending_approval: "Chờ phê duyệt",
+  order_approved: "Phê duyệt đơn",
   delivery_updated: "Cập nhật giao hàng",
   receipt_confirmed: "Nghiệm thu",
   issue_reported: "Báo sự cố",
+  issue_resolved: "Xử lý sự cố",
   payment_updated: "Cập nhật TT",
   message_sent: "Gửi tin nhắn",
+  contract_approved: "Phê duyệt HĐ",
+  contract_amended: "Ký phụ lục HĐ",
+  tender_imported: "Nhập gói thầu",
+  tender_standardized: "Chuẩn hóa gói thầu",
+  drug_created: "Tạo hồ sơ thuốc",
+  drug_updated: "Cập nhật thuốc",
 };
 
 export const NEXT_DELIVERY_ACTION: Partial<Record<OrderStatus, string>> = {
