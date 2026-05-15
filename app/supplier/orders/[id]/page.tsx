@@ -85,6 +85,14 @@ export default function SupplierOrderDetailPage({ params }: { params: Promise<{ 
   }, 0);
 
   // Determine mode
+  // ── Approval workflow state ──
+  const [rejectReason, setRejectReason] = useState("");
+  const { isOpen: isRejectOpen, onOpen: onRejectOpen, onClose: onRejectClose } = useDisclosure();
+
+  const canApprove =
+    (currentRole === "supplier_admin") &&
+    order.status === "pending_approval";
+
   const canConfirm =
     currentRole === "supplier_admin" &&
     (order.status === "pending_confirmation" || order.status === "partially_confirmed");
@@ -97,6 +105,49 @@ export default function SupplierOrderDetailPage({ params }: { params: Promise<{ 
 
   const nextDeliveryLabel = NEXT_DELIVERY_ACTION[order.status];
   const currentStepIdx = STATUS_STEP_INDEX[order.status] ?? -1;
+
+  function handleApproveOrder() {
+    setLoading(true);
+    const evidence: EvidenceLog = {
+      id: `EVD-${Date.now()}`,
+      contractId: order!.contractId,
+      orderId: order!.id,
+      actorRole: currentRole,
+      actorName: ACTOR_NAMES[currentRole] || "Người dùng",
+      actionType: "order_approved" as const,
+      title: `${order!.id}: Phê duyệt đơn hàng`,
+      description: `NPP phê duyệt đơn — chuyển sang giai đoạn xác nhận số lượng.`,
+      createdAt: new Date().toISOString(),
+    };
+    setTimeout(() => {
+      dispatch({ type: "APPROVE_ORDER", payload: { orderId: order!.id, evidence } });
+      setLoading(false);
+      setSuccessMsg("✅ Đơn hàng đã được phê duyệt — chuyển sang xác nhận số lượng!");
+    }, 600);
+  }
+
+  function handleRejectOrder() {
+    if (!rejectReason.trim()) return;
+    setLoading(true);
+    const evidence: EvidenceLog = {
+      id: `EVD-${Date.now()}`,
+      contractId: order!.contractId,
+      orderId: order!.id,
+      actorRole: currentRole,
+      actorName: ACTOR_NAMES[currentRole] || "Người dùng",
+      actionType: "order_pending_approval" as const,
+      title: `${order!.id}: Từ chối đơn hàng`,
+      description: `Lý do từ chối: ${rejectReason}`,
+      createdAt: new Date().toISOString(),
+    };
+    setTimeout(() => {
+      dispatch({ type: "REJECT_ORDER", payload: { orderId: order!.id, reason: rejectReason, evidence } });
+      setLoading(false);
+      onRejectClose();
+      setRejectReason("");
+      setSuccessMsg("Đơn hàng đã bị từ chối.");
+    }, 600);
+  }
 
   function handleConfirmOrder() {
     setLoading(true);
@@ -169,6 +220,107 @@ export default function SupplierOrderDetailPage({ params }: { params: Promise<{ 
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <p className="text-sm font-semibold text-emerald-700">{successMsg}</p>
+        </div>
+      )}
+
+      {/* ── MODE 0: Pending Approval — Approve or Reject ── */}
+      {canApprove && (
+        <div className="mb-6 rounded-xl border border-[#024430]/30 bg-[#024430]/5 p-5">
+          <div className="flex items-start gap-3 mb-4">
+            <div className="w-10 h-10 rounded-full bg-[#024430] flex items-center justify-center shrink-0">
+              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm font-bold text-[#024430]">Đơn hàng đang chờ phê duyệt</p>
+              <p className="text-xs text-[#6B7A73] mt-0.5">
+                Hệ thống đã auto-validate thành công: tín dụng OK · quota OK · danh mục OK.
+                Đơn cần được phê duyệt bởi Quản trị viên NPP trước khi xác nhận số lượng.
+              </p>
+            </div>
+          </div>
+
+          {/* Order summary for quick review */}
+          <div className="bg-white rounded-lg border border-[#E4EAE7] divide-y divide-[#E4EAE7] mb-4">
+            {order.lines.map((line) => (
+              <div key={line.id} className="flex items-center justify-between px-4 py-2.5">
+                <div>
+                  <p className="text-sm font-medium text-[#10231C]">{line.productName}</p>
+                  <p className="text-xs text-[#6B7A73]">{line.productCode}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-bold text-[#10231C]">{line.requestedQty.toLocaleString()} {line.unit}</p>
+                  <p className="text-xs text-[#6B7A73]">{(line.requestedQty * line.unitPrice).toLocaleString("vi-VN")}₫</p>
+                </div>
+              </div>
+            ))}
+            <div className="flex items-center justify-between px-4 py-2.5 bg-[#F6F8F7]">
+              <p className="text-sm font-bold text-[#10231C]">Tổng giá trị yêu cầu</p>
+              <p className="text-sm font-bold text-[#024430]">{order.totalRequestedAmount.toLocaleString("vi-VN")}₫</p>
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <Button
+              className="flex-1 bg-[#024430] text-white font-semibold"
+              onClick={handleApproveOrder}
+              isLoading={loading}
+            >
+              ✅ Phê duyệt đơn hàng
+            </Button>
+            <Button
+              variant="bordered"
+              className="flex-1 border-red-300 text-red-600 hover:bg-red-50 font-semibold"
+              onClick={onRejectOpen}
+            >
+              ✕ Từ chối
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Reject Modal */}
+      <Modal isOpen={isRejectOpen} onClose={onRejectClose} size="sm">
+        <ModalContent>
+          <ModalHeader>Từ chối đơn hàng {order.id}</ModalHeader>
+          <ModalBody>
+            <p className="text-sm text-[#6B7A73] mb-3">Vui lòng nhập lý do từ chối để thông báo đến bệnh viện.</p>
+            <div>
+              <label className="text-xs font-medium text-[#6B7A73] block mb-1">Lý do từ chối *</label>
+              <textarea
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                placeholder="VD: Hết hạn mức tín dụng, không đủ tồn kho, sai danh mục..."
+                rows={3}
+                className="w-full border border-[#E4EAE7] rounded-xl bg-[#F6F8F7] px-3 py-2 text-sm text-[#10231C] outline-none resize-none focus:border-red-400"
+              />
+            </div>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="light" onClick={onRejectClose}>Hủy</Button>
+            <Button
+              className="bg-red-600 text-white"
+              onClick={handleRejectOrder}
+              isLoading={loading}
+              isDisabled={!rejectReason.trim()}
+            >
+              Xác nhận từ chối
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* Rejected notice */}
+      {order.status === "rejected" && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
+          <svg className="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div>
+            <p className="text-sm font-bold text-red-700">Đơn hàng đã bị từ chối</p>
+            <p className="text-xs text-red-600 mt-0.5">Xem lý do trong nhật ký hoạt động bên dưới.</p>
+          </div>
         </div>
       )}
 

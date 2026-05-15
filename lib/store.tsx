@@ -32,6 +32,8 @@ export type Action =
   | { type: "CONFIRM_RECEIPT"; payload: { orderId: string; evidence: EvidenceLog } }
   | { type: "UPDATE_PAYMENT"; payload: { paymentId: string; paidAmount: number; status: PaymentStatus; evidence: EvidenceLog } }
   | { type: "ADD_EVIDENCE"; payload: EvidenceLog }
+  | { type: "APPROVE_ORDER"; payload: { orderId: string; evidence: EvidenceLog } }
+  | { type: "REJECT_ORDER"; payload: { orderId: string; reason: string; evidence: EvidenceLog } }
   | { type: "UPDATE_SUPPLIER_PROFILE"; payload: { drugMasterId: string; profile: Partial<SupplierDrugProfile> } }
   | { type: "ADD_DRUG_MASTER"; payload: DrugMaster };
 
@@ -83,6 +85,28 @@ function reducer(state: AppState, action: Action): AppState {
 
     case "ADD_EVIDENCE":
       return { ...state, evidenceLogs: [action.payload, ...state.evidenceLogs] };
+
+    case "APPROVE_ORDER": {
+      const { orderId, evidence } = action.payload;
+      return {
+        ...state,
+        orders: state.orders.map((o) =>
+          o.id === orderId ? { ...o, status: "pending_confirmation" as const } : o
+        ),
+        evidenceLogs: [evidence, ...state.evidenceLogs],
+      };
+    }
+
+    case "REJECT_ORDER": {
+      const { orderId, evidence } = action.payload;
+      return {
+        ...state,
+        orders: state.orders.map((o) =>
+          o.id === orderId ? { ...o, status: "rejected" as const } : o
+        ),
+        evidenceLogs: [evidence, ...state.evidenceLogs],
+      };
+    }
 
     case "UPDATE_SUPPLIER_PROFILE": {
       const { drugMasterId, profile } = action.payload;

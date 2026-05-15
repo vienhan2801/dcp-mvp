@@ -14,13 +14,16 @@ export type OrderLineStatus =
 
 export type OrderStatus =
   | "draft"
-  | "pending_confirmation"
+  | "pending_check"          // Mới gửi — đang auto-validate
+  | "pending_confirmation"   // Legacy / chờ xác nhận
+  | "pending_approval"       // Đã validate — chờ NPP phê duyệt
   | "partially_confirmed"
   | "confirmed"
   | "preparing"
   | "shipping"
   | "delivered"
   | "received_confirmed"
+  | "rejected"
   | "cancelled";
 
 export type DeliveryStatus = "preparing" | "shipping" | "delivered";

@@ -9,25 +9,31 @@ import { UserRole, EvidenceActionType } from "@/domain/models/evidence";
 
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   draft: "Nháp",
+  pending_check: "Đang kiểm tra",
   pending_confirmation: "Chờ xác nhận",
+  pending_approval: "Chờ phê duyệt",
   partially_confirmed: "Xác nhận một phần",
   confirmed: "Đã xác nhận",
   preparing: "Đang chuẩn bị",
   shipping: "Đang vận chuyển",
   delivered: "Đã giao",
   received_confirmed: "Đã nghiệm thu",
+  rejected: "Đã từ chối",
   cancelled: "Đã hủy",
 };
 
 export const ORDER_STATUS_COLORS: Record<OrderStatus, "default" | "primary" | "secondary" | "success" | "warning" | "danger"> = {
   draft: "default",
+  pending_check: "warning",
   pending_confirmation: "warning",
+  pending_approval: "warning",
   partially_confirmed: "secondary",
   confirmed: "primary",
   preparing: "secondary",
   shipping: "primary",
   delivered: "success",
   received_confirmed: "success",
+  rejected: "danger",
   cancelled: "danger",
 };
 
