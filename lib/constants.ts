@@ -104,6 +104,10 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   pharmacy_buyer: "Nhà thuốc - Đặt hàng",
   pharmacy_warehouse: "Nhà thuốc - Kho vận",
   pharmacy_finance: "Nhà thuốc - Tài chính",
+  customer_admin: "Khách hàng - Quản trị",
+  customer_buyer: "Khách hàng - Mua hàng",
+  customer_receiver: "Khách hàng - Nhận hàng",
+  customer_finance: "Khách hàng - Tài chính",
 };
 
 export const EVIDENCE_ACTION_LABELS: Record<EvidenceActionType, string> = {

@@ -5,7 +5,7 @@ import {
   LayoutDashboard, FileText, ShoppingCart, Truck, CreditCard,
   ClipboardList, MessageSquare, Package, BarChart2, FlaskConical,
   Factory, Warehouse, BookOpen, Store, Gavel, Bell, BarChart3,
-  Tag, Shield, ScrollText, KeyRound, GitBranch, Users,
+  Tag, Shield, ScrollText, KeyRound, GitBranch, Users, Building2,
 } from "lucide-react";
 import { useApp } from "@/lib/store";
 import { UserRole } from "@/domain/models/evidence";
@@ -17,7 +17,7 @@ interface NavItem {
   exact?: boolean;
 }
 
-export type SidebarType = "supplier" | "hospital" | "manufacturer" | "pharmacy";
+export type SidebarType = "supplier" | "hospital" | "manufacturer" | "pharmacy" | "customer";
 
 interface SidebarProps {
   type: SidebarType;
@@ -43,6 +43,10 @@ const PORTAL_STYLE: Record<SidebarType, {
   pharmacy: {
     accent: "#0F766E", accentLight: "#F0FDFA", accentBg: "bg-teal-700",
     label: "DCP", sublabel: "Nhà thuốc", emoji: "💊",
+  },
+  customer: {
+    accent: "#1D4ED8", accentLight: "#EFF6FF", accentBg: "bg-blue-700",
+    label: "DCP", sublabel: "Khách hàng", emoji: "🏥",
   },
 };
 
@@ -100,11 +104,23 @@ const pharmacyNav: NavItem[] = [
   { label: "Thanh toán",      href: "/pharmacy/payments",       icon: <CreditCard size={17} /> },
 ];
 
+const customerNav: NavItem[] = [
+  { label: "Tổng quan",    href: "/customer/dashboard",   icon: <LayoutDashboard size={17} /> },
+  { label: "Hợp đồng",    href: "/customer/contracts",   icon: <FileText size={17} /> },
+  { label: "Catalog thuốc", href: "/customer/catalog",   icon: <FlaskConical size={17} />, exact: true },
+  { label: "Tạo đơn hàng", href: "/customer/orders/new", icon: <ShoppingCart size={17} />, exact: true },
+  { label: "Đơn hàng",    href: "/customer/orders",      icon: <Package size={17} /> },
+  { label: "Nhận hàng",   href: "/customer/receipts",    icon: <Truck size={17} /> },
+  { label: "Công nợ",     href: "/customer/payments",    icon: <CreditCard size={17} /> },
+  { label: "Chi nhánh",   href: "/customer/branches",    icon: <Building2 size={17} /> },
+];
+
 const NAV_MAP: Record<SidebarType, NavItem[]> = {
   supplier: supplierNav,
   hospital: hospitalNav,
   manufacturer: manufacturerNav,
   pharmacy: pharmacyNav,
+  customer: customerNav,
 };
 
 const ROLE_DISPLAY: Record<UserRole, string> = {
@@ -122,6 +138,10 @@ const ROLE_DISPLAY: Record<UserRole, string> = {
   pharmacy_buyer: "NT · Đặt hàng",
   pharmacy_warehouse: "NT · Kho vận",
   pharmacy_finance: "NT · Tài chính",
+  customer_admin: "KH · Quản trị",
+  customer_buyer: "KH · Mua hàng",
+  customer_receiver: "KH · Nhận hàng",
+  customer_finance: "KH · Tài chính",
 };
 
 function filterNavByRole(nav: NavItem[], role: UserRole, type: SidebarType): NavItem[] {
@@ -147,6 +167,12 @@ function filterNavByRole(nav: NavItem[], role: UserRole, type: SidebarType): Nav
     if (role === "pharmacy_warehouse") return match(["Bảng điều khiển", "Đơn hàng"]);
     if (role === "pharmacy_finance")   return match(["Bảng điều khiển", "Hợp đồng", "Thanh toán"]);
     if (role === "pharmacy_buyer")     return match(["Bảng điều khiển", "Danh mục thuốc", "Hợp đồng", "Tạo đơn hàng", "Đơn hàng"]);
+    return nav;
+  }
+  if (type === "customer") {
+    if (role === "customer_receiver") return match(["Tổng quan", "Đơn hàng", "Nhận hàng"]);
+    if (role === "customer_finance")  return match(["Tổng quan", "Hợp đồng", "Công nợ"]);
+    if (role === "customer_buyer")    return match(["Tổng quan", "Hợp đồng", "Catalog thuốc", "Tạo đơn hàng", "Đơn hàng"]);
     return nav;
   }
   return nav;

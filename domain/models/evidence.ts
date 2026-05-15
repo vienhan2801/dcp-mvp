@@ -16,7 +16,12 @@ export type UserRole =
   | "pharmacy_admin"
   | "pharmacy_buyer"       // Chủ nhà thuốc / đặt hàng
   | "pharmacy_warehouse"   // Quản kho / nhập kho
-  | "pharmacy_finance";    // Thanh toán
+  | "pharmacy_finance"     // Thanh toán
+  // Khách hàng (Customer)
+  | "customer_admin"
+  | "customer_buyer"
+  | "customer_receiver"
+  | "customer_finance";
 
 export type EvidenceActionType =
   | "order_created"
