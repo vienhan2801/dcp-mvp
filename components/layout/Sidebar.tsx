@@ -56,12 +56,15 @@ const PORTAL_STYLE: Record<SidebarType, {
 const supplierNav: NavItem[] = [
   // Core
   { label: "Bảng điều khiển", href: "/supplier/dashboard",        icon: <LayoutDashboard size={17} /> },
+  { label: "Khách hàng",      href: "/supplier/customers",         icon: <Building2 size={17} /> },
+  { label: "Nhà cung cấp",    href: "/supplier/vendors",           icon: <Factory size={17} /> },
   { label: "Danh mục thuốc",  href: "/supplier/drugs",             icon: <FlaskConical size={17} /> },
   { label: "Hợp đồng",        href: "/supplier/contracts",         icon: <FileText size={17} /> },
   { label: "Gói thầu",        href: "/supplier/tender-library",    icon: <Gavel size={17} /> },
   // Vận hành
   { label: "Đơn hàng",        href: "/supplier/orders",            icon: <ShoppingCart size={17} /> },
   { label: "Giao hàng",       href: "/supplier/deliveries",        icon: <Truck size={17} /> },
+  { label: "Lịch giao hàng",  href: "/supplier/deliveries/calendar", icon: <ClipboardList size={17} /> },
   { label: "Khiếu nại",       href: "/supplier/complaints",        icon: <AlertCircle size={17} /> },
   { label: "Kho & Lô hàng",   href: "/supplier/warehouse",         icon: <Warehouse size={17} /> },
   { label: "Tổng hợp nhu cầu",href: "/supplier/aggregation",       icon: <BarChart2 size={17} /> },
@@ -151,8 +154,8 @@ function filterNavByRole(nav: NavItem[], role: UserRole, type: SidebarType): Nav
   const match = (labels: string[]) => nav.filter((i) => labels.includes(i.label));
 
   if (type === "supplier") {
-    if (role === "supplier_logistics") return match(["Bảng điều khiển", "Danh mục thuốc", "Đơn hàng", "Giao hàng", "Nhật ký"]);
-    if (role === "supplier_finance")   return match(["Bảng điều khiển", "Hợp đồng", "Thanh toán", "Nhật ký"]);
+    if (role === "supplier_logistics") return match(["Bảng điều khiển", "Danh mục thuốc", "Đơn hàng", "Giao hàng", "Lịch giao hàng", "Kho & Lô hàng", "Khiếu nại", "Nhật ký"]);
+    if (role === "supplier_finance")   return match(["Bảng điều khiển", "Khách hàng", "Hợp đồng", "Thanh toán", "Bảng giá", "Nhật ký"]);
     return nav;
   }
   if (type === "manufacturer") {
