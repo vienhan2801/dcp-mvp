@@ -59,6 +59,18 @@ const PORTALS: Portal[] = [
       { key: "pharmacy_finance",   label: "Kế toán / Thanh toán",  path: "/pharmacy/payments" },
     ],
   },
+  {
+    id: "customer", title: "Khách hàng", icon: "🏢",
+    tagline: "Bệnh viện / phòng khám / tổ chức",
+    accent: "#1D4ED8", bg: "#EFF6FF", border: "#BFDBFE", activeBorder: "#1D4ED8",
+    caps: ["🏢 Chi nhánh", "📝 Tạo đơn", "📦 Nhận hàng"],
+    roles: [
+      { key: "customer_admin",    label: "Quản trị",      path: "/customer/dashboard" },
+      { key: "customer_buyer",    label: "Mua hàng",      path: "/customer/orders/new" },
+      { key: "customer_receiver", label: "Nhận hàng",     path: "/customer/receipts" },
+      { key: "customer_finance",  label: "Tài chính",     path: "/customer/payments" },
+    ],
+  },
 ];
 
 // ─── Login page ───────────────────────────────────────────────────────────────

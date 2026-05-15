@@ -2,880 +2,561 @@
 
 import { useState } from "react";
 import PageHeader from "@/components/PageHeader";
-import { Card, CardBody, Chip, Button, Progress } from "@/components/ui";
-import { DonutChart, BarChart, LineChart, PieChart } from "@/components/Charts";
-import { fmtNum, fmtDate } from "@/lib/format";
+import { Card, CardBody, CardHeader, Chip } from "@/components/ui";
+import { BarChart, DonutChart } from "@/components/Charts";
+import { fmtVND } from "@/lib/format";
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
 
-const MONTHS = ["Th12", "Th1", "Th2", "Th3", "Th4", "Th5"];
-const INBOUND = [420000, 380000, 450000, 510000, 390000, 480000];
-const OUTBOUND = [395000, 410000, 430000, 488000, 405000, 460000];
-
-interface ForecastItem {
+interface ContractRow {
+  id: string;
+  customer: string;
   drug: string;
-  currentStock: number;
-  avgMonthlyDemand: number;
-  forecastJun: number;
-  forecastJul: number;
-  forecastAug: number;
-  confidence: number;
-  stockoutRisk: "high" | "medium" | "low" | "safe";
-  recommendedOrderQty: number;
-  recommendedOrderDate: string;
-  trend: "up" | "down" | "stable";
-  trendPct: number;
+  unit: string;
+  quota: number;
+  ordered: number;
+  remaining: number;
 }
 
-const FORECAST_DATA: ForecastItem[] = [
+const CONTRACTS: ContractRow[] = [
   {
+    id: "CT-BV-001",
+    customer: "BV Chợ Rẫy",
     drug: "Paracetamol 500mg",
-    currentStock: 45000,
-    avgMonthlyDemand: 38000,
-    forecastJun: 41000,
-    forecastJul: 43500,
-    forecastAug: 40000,
-    confidence: 94,
-    stockoutRisk: "safe",
-    recommendedOrderQty: 80000,
-    recommendedOrderDate: "2026-07-15",
-    trend: "up",
-    trendPct: 8,
+    unit: "viên",
+    quota: 120000,
+    ordered: 45000,
+    remaining: 75000,
   },
   {
+    id: "CT-BV-002",
+    customer: "BV Đại học Y Dược",
     drug: "Amoxicillin 500mg",
-    currentStock: 8500,
-    avgMonthlyDemand: 12000,
-    forecastJun: 13500,
-    forecastJul: 14000,
-    forecastAug: 13000,
-    confidence: 88,
-    stockoutRisk: "high",
-    recommendedOrderQty: 25000,
-    recommendedOrderDate: "2026-06-05",
-    trend: "up",
-    trendPct: 12,
+    unit: "viên",
+    quota: 60000,
+    ordered: 22000,
+    remaining: 38000,
   },
   {
-    drug: "Omeprazole 20mg",
-    currentStock: 22000,
-    avgMonthlyDemand: 9000,
-    forecastJun: 9500,
-    forecastJul: 9200,
-    forecastAug: 8800,
-    confidence: 91,
-    stockoutRisk: "safe",
-    recommendedOrderQty: 20000,
-    recommendedOrderDate: "2026-08-01",
-    trend: "stable",
-    trendPct: 0,
+    id: "CT-NT-003",
+    customer: "Nhà thuốc Phúc Khang",
+    drug: "Paracetamol 500mg",
+    unit: "viên",
+    quota: 36000,
+    ordered: 8000,
+    remaining: 28000,
   },
   {
-    drug: "Vitamin C 1000mg",
-    currentStock: 31000,
-    avgMonthlyDemand: 11000,
-    forecastJun: 14000,
-    forecastJul: 18000,
-    forecastAug: 15000,
-    confidence: 82,
-    stockoutRisk: "low",
-    recommendedOrderQty: 30000,
-    recommendedOrderDate: "2026-07-20",
-    trend: "up",
-    trendPct: 27,
+    id: "CT-NT-004",
+    customer: "Nhà thuốc An Khang",
+    drug: "Azithromycin 500mg",
+    unit: "viên",
+    quota: 24000,
+    ordered: 9500,
+    remaining: 14500,
   },
   {
-    drug: "Azithromycin 250mg",
-    currentStock: 3200,
-    avgMonthlyDemand: 5500,
-    forecastJun: 6000,
-    forecastJul: 5800,
-    forecastAug: 5200,
-    confidence: 85,
-    stockoutRisk: "high",
-    recommendedOrderQty: 15000,
-    recommendedOrderDate: "2026-06-01",
-    trend: "stable",
-    trendPct: 0,
-  },
-  {
-    drug: "Metronidazole 250mg",
-    currentStock: 18000,
-    avgMonthlyDemand: 7000,
-    forecastJun: 7200,
-    forecastJul: 7500,
-    forecastAug: 6800,
-    confidence: 90,
-    stockoutRisk: "safe",
-    recommendedOrderQty: 20000,
-    recommendedOrderDate: "2026-08-10",
-    trend: "stable",
-    trendPct: 0,
-  },
-  {
-    drug: "Dexamethasone 0.5mg",
-    currentStock: 0,
-    avgMonthlyDemand: 3000,
-    forecastJun: 3200,
-    forecastJul: 3100,
-    forecastAug: 2900,
-    confidence: 87,
-    stockoutRisk: "high",
-    recommendedOrderQty: 10000,
-    recommendedOrderDate: "2026-06-01",
-    trend: "down",
-    trendPct: -5,
-  },
-  {
-    drug: "Cefuroxime 500mg",
-    currentStock: 12000,
-    avgMonthlyDemand: 6000,
-    forecastJun: 6500,
-    forecastJul: 7000,
-    forecastAug: 6200,
-    confidence: 86,
-    stockoutRisk: "low",
-    recommendedOrderQty: 15000,
-    recommendedOrderDate: "2026-07-05",
-    trend: "up",
-    trendPct: 10,
+    id: "CT-KH-005",
+    customer: "Bệnh viện Tân Phú",
+    drug: "Ceftriaxone 1g",
+    unit: "lọ",
+    quota: 12000,
+    ordered: 3200,
+    remaining: 8800,
   },
 ];
 
-interface NCCSupply {
-  nccName: string;
-  drugs: string[];
-  pendingQty: number;
-  expectedDate: string;
-  status: "on_time" | "delayed" | "early";
-  reliability: number;
+const MONTHLY_HISTORY: Record<string, number[]> = {
+  "Paracetamol 500mg": [8200, 9100, 10500, 11200, 13500],
+  "Amoxicillin 500mg": [3500, 4200, 4800, 5100, 5500],
+  "Azithromycin 500mg": [1800, 2100, 2300, 2500, 2700],
+};
+
+const MONTHS = ["T1", "T2", "T3", "T4", "T5"];
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function usagePct(ordered: number, quota: number): number {
+  if (!quota) return 0;
+  return Math.round((ordered / quota) * 100);
 }
 
-const NCC_SUPPLY: NCCSupply[] = [
-  {
-    nccName: "PhytoPharma Manufacturing",
-    drugs: ["Paracetamol 500mg", "Amoxicillin 500mg", "Vitamin C 1000mg"],
-    pendingQty: 80000,
-    expectedDate: "2026-06-08",
-    status: "on_time",
-    reliability: 96,
-  },
-  {
-    nccName: "MedPharm Co.",
-    drugs: ["Omeprazole 20mg", "Metronidazole 250mg", "Dexamethasone 0.5mg"],
-    pendingQty: 45000,
-    expectedDate: "2026-06-15",
-    status: "delayed",
-    reliability: 78,
-  },
-  {
-    nccName: "VietPharma",
-    drugs: ["Azithromycin 250mg", "Ciprofloxacin 500mg", "Cefuroxime 500mg"],
-    pendingQty: 30000,
-    expectedDate: "2026-06-12",
-    status: "on_time",
-    reliability: 91,
-  },
-];
-
-// Drug demand breakdown (BV + NT)
-const DRUG_DEMAND = [
-  { drug: "Paracetamol 500mg", bv: 175000, nt: 110000 },
-  { drug: "Amoxicillin 500mg", bv: 82000, nt: 48000 },
-  { drug: "Vitamin C 1000mg", bv: 54000, nt: 36000 },
-  { drug: "Omeprazole 20mg", bv: 58000, nt: 32000 },
-  { drug: "Cefuroxime 500mg", bv: 46000, nt: 24000 },
-  { drug: "Metronidazole 250mg", bv: 40000, nt: 20000 },
-  { drug: "Azithromycin 250mg", bv: 38000, nt: 18000 },
-  { drug: "Dexamethasone 0.5mg", bv: 22000, nt: 12000 },
-];
-
-// Stockout prediction: days of stock remaining
-function daysOfStock(item: ForecastItem): number {
-  if (item.currentStock <= 0) return 0;
-  const dailyDemand = item.avgMonthlyDemand / 30;
-  return Math.floor(item.currentStock / dailyDemand);
+function contractStatus(remaining: number, quota: number): "normal" | "warning" | "danger" {
+  const pct = remaining / quota;
+  if (pct <= 0) return "danger";
+  if (pct < 0.3) return "warning";
+  return "normal";
 }
 
-function stockoutDate(item: ForecastItem): string {
-  const days = daysOfStock(item);
-  if (days > 90) return ">3 tháng";
-  const d = new Date("2026-05-07");
-  d.setDate(d.getDate() + days);
-  return fmtDate(d.toISOString().split("T")[0]);
+function fmtNum(n: number): string {
+  return new Intl.NumberFormat("vi-VN").format(n);
 }
+
+function momPct(history: number[]): number {
+  if (history.length < 2) return 0;
+  const last = history[history.length - 1];
+  const prev = history[history.length - 2];
+  if (!prev) return 0;
+  return Math.round(((last - prev) / prev) * 100);
+}
+
+// ─── Group by drug ────────────────────────────────────────────────────────────
+
+interface DrugGroup {
+  drug: string;
+  contracts: number;
+  totalQuota: number;
+  totalOrdered: number;
+  totalRemaining: number;
+  unit: string;
+}
+
+function groupByDrug(contracts: ContractRow[]): DrugGroup[] {
+  const map = new Map<string, DrugGroup>();
+  for (const c of contracts) {
+    const existing = map.get(c.drug);
+    if (existing) {
+      existing.contracts += 1;
+      existing.totalQuota += c.quota;
+      existing.totalOrdered += c.ordered;
+      existing.totalRemaining += c.remaining;
+    } else {
+      map.set(c.drug, {
+        drug: c.drug,
+        contracts: 1,
+        totalQuota: c.quota,
+        totalOrdered: c.ordered,
+        totalRemaining: c.remaining,
+        unit: c.unit,
+      });
+    }
+  }
+  return Array.from(map.values());
+}
+
+// ─── Tab types ────────────────────────────────────────────────────────────────
+
+type TabKey = "contracts" | "products" | "trend";
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function RiskBadge({ risk }: { risk: ForecastItem["stockoutRisk"] }) {
-  const map = {
-    high: "bg-red-100 text-red-700 border border-red-200",
-    medium: "bg-amber-100 text-amber-700 border border-amber-200",
-    low: "bg-blue-100 text-blue-700 border border-blue-200",
-    safe: "bg-green-100 text-green-700 border border-green-200",
-  };
-  const label = {
-    high: "⚠ Cao",
-    medium: "Trung bình",
-    low: "Thấp",
-    safe: "✓ An toàn",
-  };
+function StatusChipLocal({ status }: { status: "normal" | "warning" | "danger" }) {
+  if (status === "normal") {
+    return (
+      <Chip color="success" variant="flat" size="sm">
+        Bình thường
+      </Chip>
+    );
+  }
+  if (status === "warning") {
+    return (
+      <Chip color="warning" variant="flat" size="sm">
+        Gần hết
+      </Chip>
+    );
+  }
   return (
-    <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${map[risk]}`}>
-      {label[risk]}
-    </span>
+    <Chip color="danger" variant="flat" size="sm">
+      Hết hạn mức
+    </Chip>
   );
 }
 
-function TrendBadge({ trend, pct }: { trend: ForecastItem["trend"]; pct: number }) {
-  if (trend === "up") {
-    return (
-      <span className="text-green-600 font-semibold text-xs whitespace-nowrap">
-        ↑ +{pct}%
-      </span>
-    );
-  }
-  if (trend === "down") {
-    return (
-      <span className="text-red-500 font-semibold text-xs whitespace-nowrap">
-        ↓ {pct}%
-      </span>
-    );
-  }
-  return <span className="text-[#6B7A73] font-semibold text-xs">→ Ổn định</span>;
+// ─── Tab 1: Theo hợp đồng ────────────────────────────────────────────────────
+
+function TabContracts() {
+  return (
+    <div className="mt-4 overflow-x-auto">
+      <table className="w-full min-w-[860px] border-collapse border border-[#E4EAE7] rounded-xl">
+        <thead>
+          <tr className="bg-[#F6F8F7] border-b border-[#E4EAE7]">
+            {[
+              "Hợp đồng",
+              "Khách hàng",
+              "Sản phẩm",
+              "Hạn mức",
+              "Đã đặt",
+              "Còn lại",
+              "% Sử dụng",
+              "Trạng thái",
+            ].map((col) => (
+              <th
+                key={col}
+                className="text-left px-3 py-2.5 text-xs font-semibold text-[#6B7A73] whitespace-nowrap"
+              >
+                {col}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {CONTRACTS.map((c) => {
+            const pct = usagePct(c.ordered, c.quota);
+            const st = contractStatus(c.remaining, c.quota);
+            return (
+              <tr
+                key={c.id}
+                className="border-b border-[#E4EAE7] hover:bg-[#F6F8F7] transition-colors"
+              >
+                <td className="px-3 py-3 text-sm font-mono font-semibold text-[#024430] whitespace-nowrap">
+                  {c.id}
+                </td>
+                <td className="px-3 py-3 text-sm text-[#10231C] whitespace-nowrap">
+                  {c.customer}
+                </td>
+                <td className="px-3 py-3 text-sm text-[#10231C] whitespace-nowrap">{c.drug}</td>
+                <td className="px-3 py-3 text-sm text-[#10231C] text-right whitespace-nowrap">
+                  {fmtNum(c.quota)} {c.unit}
+                </td>
+                <td className="px-3 py-3 text-sm text-[#10231C] text-right whitespace-nowrap">
+                  {fmtNum(c.ordered)}
+                </td>
+                <td className="px-3 py-3 text-sm text-[#10231C] text-right whitespace-nowrap">
+                  {fmtNum(c.remaining)}
+                </td>
+                <td className="px-3 py-3 min-w-[140px]">
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-1.5 bg-[#E4EAE7] rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all ${
+                          st === "danger"
+                            ? "bg-red-500"
+                            : st === "warning"
+                            ? "bg-amber-400"
+                            : "bg-[#024430]"
+                        }`}
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                    <span className="text-xs font-semibold text-[#10231C] w-8 text-right">
+                      {pct}%
+                    </span>
+                  </div>
+                </td>
+                <td className="px-3 py-3">
+                  <StatusChipLocal status={st} />
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
 }
 
-// ─── Main page ────────────────────────────────────────────────────────────────
+// ─── Tab 2: Theo sản phẩm ────────────────────────────────────────────────────
 
-type ForecastTab = "all" | "high" | "order";
-
-export default function SupplierAggregationPage() {
-  const [forecastTab, setForecastTab] = useState<ForecastTab>("all");
-
-  const filteredForecast = FORECAST_DATA.filter((item) => {
-    if (forecastTab === "high") return item.stockoutRisk === "high";
-    if (forecastTab === "order") return item.recommendedOrderDate <= "2026-07-01";
-    return true;
-  });
-
-  // Line chart data — two series interleaved as two separate datasets
-  const inboundLine = MONTHS.map((label, i) => ({ label, value: INBOUND[i] }));
-  const outboundLine = MONTHS.map((label, i) => ({ label, value: OUTBOUND[i] }));
-
-  // Bar chart data for top drugs
-  const barData = DRUG_DEMAND.map((d, i) => {
-    const total = d.bv + d.nt;
-    const color =
-      i < 2 ? "#024430" : i < 6 ? "#D97706" : "#3B82F6";
-    return { label: d.drug.split(" ")[0], value: total, color };
-  });
-
-  // Pie chart slices
-  const pieSlices = [
-    { label: "Bệnh viện (BV)", value: 285000, color: "#024430" },
-    { label: "Nhà thuốc (NT)", value: 175000, color: "#34D399" },
-  ];
-
-  const tabs: { key: ForecastTab; label: string }[] = [
-    { key: "all", label: "Tất cả" },
-    { key: "high", label: "Rủi ro cao" },
-    { key: "order", label: "Cần đặt hàng" },
-  ];
+function TabProducts() {
+  const groups = groupByDrug(CONTRACTS);
+  // Donut for Paracetamol
+  const para = groups.find((g) => g.drug === "Paracetamol 500mg");
 
   return (
-    <div className="bg-[#F6F8F7] min-h-screen -m-6 p-6">
-      <PageHeader
-        title="DMS Forecasting & Analytics"
-        subtitle="PhytoPharma NPP · Trung tâm phân tích dự báo nhu cầu AI · Cập nhật: 07/05/2026"
-        actions={
-          <span className="bg-gradient-to-r from-[#024430] to-[#0a6e54] text-white px-3 py-1 rounded-full text-xs font-semibold">
-            🤖 AI DCP v2.4
-          </span>
-        }
-      />
-
-      {/* ── Section 1: Hero KPI strip ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        {/* Row 1 */}
-        <Card className="border border-[#BBF7D0] bg-white">
-          <CardBody className="p-4">
-            <p className="text-[10px] text-[#6B7A73] font-semibold uppercase tracking-wide mb-1">
-              Tổng lưu thông tháng này
-            </p>
-            <p className="text-2xl font-bold text-[#024430]">460,000</p>
-            <p className="text-xs text-[#6B7A73] mt-0.5">đơn vị xuất kho</p>
-            <span className="inline-block mt-2 text-xs text-green-600 font-semibold bg-green-50 px-2 py-0.5 rounded-full">
-              ↑ 13.6% so tháng trước
-            </span>
-          </CardBody>
-        </Card>
-
-        <Card className="border border-[#E4EAE7] bg-white">
-          <CardBody className="p-4">
-            <p className="text-[10px] text-[#6B7A73] font-semibold uppercase tracking-wide mb-1">
-              Giá trị hàng trong kho
-            </p>
-            <p className="text-2xl font-bold text-[#10231C]">8,4 tỷ</p>
-            <p className="text-xs text-[#6B7A73] mt-0.5">₫ tồn kho hiện tại</p>
-            <span className="inline-block mt-2 text-xs text-[#6B7A73] bg-[#F6F8F7] px-2 py-0.5 rounded-full">
-              Cập nhật hôm nay
-            </span>
-          </CardBody>
-        </Card>
-
-        <Card className="border border-[#E4EAE7] bg-white">
-          <CardBody className="p-4">
-            <p className="text-[10px] text-[#6B7A73] font-semibold uppercase tracking-wide mb-1">
-              Tỷ lệ phục vụ
-            </p>
-            <p className="text-2xl font-bold text-[#024430]">97,2%</p>
-            <p className="text-xs text-[#6B7A73] mt-0.5">đơn hàng đáp ứng đúng hạn</p>
-            <div className="mt-2">
-              <Progress value={97.2} size="sm" classNames={{ indicator: "bg-[#024430]" }} />
-            </div>
-          </CardBody>
-        </Card>
-
-        <Card className="border border-[#E4EAE7] bg-white">
-          <CardBody className="p-4">
-            <p className="text-[10px] text-[#6B7A73] font-semibold uppercase tracking-wide mb-1">
-              Khách hàng đang đặt
-            </p>
-            <p className="text-2xl font-bold text-[#10231C]">40</p>
-            <p className="text-xs text-[#6B7A73] mt-0.5">đối tác hoạt động</p>
-            <div className="flex gap-2 mt-2">
-              <span className="text-xs bg-[#024430]/10 text-[#024430] px-2 py-0.5 rounded-full font-medium">
-                12 BV
-              </span>
-              <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">
-                28 NT
-              </span>
-            </div>
-          </CardBody>
-        </Card>
-
-        <Card className="border border-red-100 bg-red-50">
-          <CardBody className="p-4">
-            <p className="text-[10px] text-red-600 font-semibold uppercase tracking-wide mb-1">
-              Mặt hàng cần bổ sung
-            </p>
-            <p className="text-2xl font-bold text-red-700">3 SKU</p>
-            <p className="text-xs text-red-500 mt-0.5">tồn kho dưới ngưỡng an toàn</p>
-            <span className="inline-flex items-center gap-1 mt-2 text-xs bg-red-600 text-white px-2 py-0.5 rounded-full font-semibold">
-              ⚡ KHẨN CẤP
-            </span>
-          </CardBody>
-        </Card>
-
-        <Card className="border border-[#E4EAE7] bg-white">
-          <CardBody className="p-4">
-            <p className="text-[10px] text-[#6B7A73] font-semibold uppercase tracking-wide mb-1">
-              AI Độ chính xác dự báo
-            </p>
-            <p className="text-2xl font-bold text-[#024430]">89,4%</p>
-            <p className="text-xs text-[#6B7A73] mt-0.5">trung bình 3 tháng gần nhất</p>
-            <div className="mt-2">
-              <Progress value={89.4} size="sm" classNames={{ indicator: "bg-[#024430]" }} />
-            </div>
-          </CardBody>
-        </Card>
-      </div>
-
-      {/* ── Section 2: Luồng hàng hóa ── */}
-      <div className="mb-2">
-        <p className="text-sm font-bold text-[#10231C] uppercase tracking-wide mb-3">
-          Luồng hàng hóa
-        </p>
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-        {/* Line chart — wider */}
-        <Card className="lg:col-span-2 border border-[#E4EAE7]">
-          <CardBody className="p-5">
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-sm font-semibold text-[#10231C]">Nhập kho vs Xuất kho</p>
-              <div className="flex items-center gap-4 text-xs text-[#6B7A73]">
-                <span className="flex items-center gap-1">
-                  <span className="inline-block w-3 h-0.5 bg-[#024430] rounded" />
-                  Nhập kho
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="inline-block w-3 h-0.5 bg-[#3B82F6] rounded" />
-                  Xuất kho
-                </span>
-              </div>
-            </div>
-            <div className="relative">
-              <LineChart
-                data={inboundLine}
-                height={200}
-                color="#024430"
-                formatValue={(v) => `${(v / 1000).toFixed(0)}k`}
-              />
-              <div className="absolute inset-0 pointer-events-none">
-                <LineChart
-                  data={outboundLine}
-                  height={200}
-                  color="#3B82F6"
-                  fillColor="#3B82F6"
-                  formatValue={(v) => `${(v / 1000).toFixed(0)}k`}
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-3 mt-3 pt-3 border-t border-[#E4EAE7]">
-              <div className="text-center">
-                <p className="text-[10px] text-[#6B7A73]">Nhập TB/tháng</p>
-                <p className="text-sm font-bold text-[#024430]">438k</p>
-              </div>
-              <div className="text-center">
-                <p className="text-[10px] text-[#6B7A73]">Xuất TB/tháng</p>
-                <p className="text-sm font-bold text-blue-600">431k</p>
-              </div>
-              <div className="text-center">
-                <p className="text-[10px] text-[#6B7A73]">Tích lũy tồn</p>
-                <p className="text-sm font-bold text-[#10231C]">+42k</p>
-              </div>
-            </div>
-          </CardBody>
-        </Card>
-
-        {/* Pie chart — narrower */}
-        <Card className="border border-[#E4EAE7]">
-          <CardBody className="p-5">
-            <p className="text-sm font-semibold text-[#10231C] mb-4">Cơ cấu khách hàng</p>
-            <div className="flex justify-center mb-4">
-              <PieChart slices={pieSlices} size={130} />
-            </div>
-            <div className="space-y-2 pt-3 border-t border-[#E4EAE7]">
-              <div className="flex justify-between text-xs">
-                <span className="text-[#6B7A73]">Bệnh viện</span>
-                <span className="font-semibold text-[#024430]">{fmtNum(285000)} đơn vị</span>
-              </div>
-              <div className="flex justify-between text-xs">
-                <span className="text-[#6B7A73]">Nhà thuốc</span>
-                <span className="font-semibold text-blue-600">{fmtNum(175000)} đơn vị</span>
-              </div>
-              <div className="flex justify-between text-xs border-t border-[#E4EAE7] pt-2">
-                <span className="font-medium text-[#10231C]">Tổng</span>
-                <span className="font-bold text-[#10231C]">{fmtNum(460000)} đơn vị</span>
-              </div>
-            </div>
-          </CardBody>
-        </Card>
-      </div>
-
-      {/* ── Section 3: AI Forecast ── */}
-      <div className="mb-2 flex items-center justify-between">
-        <p className="text-sm font-bold text-[#10231C] uppercase tracking-wide">
-          Dự báo AI — Nhu cầu 3 tháng tới
-        </p>
-        <span className="bg-gradient-to-r from-[#024430] to-[#0a6e54] text-white px-3 py-1 rounded-full text-xs font-semibold">
-          🤖 Được tính toán bởi DCP AI · Cập nhật hàng tuần
-        </span>
-      </div>
-
-      <Card className="border border-[#E4EAE7] mb-6">
-        <CardBody className="p-5">
-          {/* Tab strip */}
-          <div className="flex gap-1 mb-4 bg-[#F6F8F7] p-1 rounded-xl w-fit">
-            {tabs.map((t) => (
-              <button
-                key={t.key}
-                type="button"
-                onClick={() => setForecastTab(t.key)}
-                className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                  forecastTab === t.key
-                    ? "bg-[#024430] text-white shadow-sm"
-                    : "text-[#6B7A73] hover:text-[#10231C] hover:bg-white"
-                }`}
-              >
-                {t.label}
-                {t.key === "high" && (
-                  <span className="ml-1.5 bg-red-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5">
-                    3
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-
-          {/* Forecast table */}
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px]">
-              <thead>
-                <tr className="border-b border-[#E4EAE7] bg-[#F6F8F7]">
-                  {[
-                    "Thuốc",
-                    "Tồn kho HT",
-                    "Dự báo T6",
-                    "Dự báo T7",
-                    "Dự báo T8",
-                    "Xu hướng",
-                    "Độ tin cậy",
-                    "Rủi ro",
-                    "Đề xuất",
-                  ].map((col) => (
-                    <th
-                      key={col}
-                      className="text-left px-3 py-2.5 text-[11px] font-semibold text-[#6B7A73] uppercase tracking-wide whitespace-nowrap"
-                    >
-                      {col}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filteredForecast.map((item) => (
-                  <tr
-                    key={item.drug}
-                    className={`border-b border-[#E4EAE7] hover:bg-[#F6F8F7] transition-colors ${
-                      item.stockoutRisk === "high" ? "bg-red-50/40" : ""
-                    }`}
-                  >
-                    <td className="px-3 py-3">
-                      <p className="text-sm font-semibold text-[#10231C] whitespace-nowrap">
-                        {item.drug}
-                      </p>
-                    </td>
-                    <td className="px-3 py-3">
-                      <p
-                        className={`text-sm font-bold whitespace-nowrap ${
-                          item.currentStock === 0
-                            ? "text-red-600"
-                            : item.currentStock < item.avgMonthlyDemand
-                            ? "text-amber-600"
-                            : "text-[#10231C]"
-                        }`}
-                      >
-                        {item.currentStock === 0 ? (
-                          <span className="text-red-600 font-bold">⚠ HẾT HÀNG</span>
-                        ) : (
-                          fmtNum(item.currentStock)
-                        )}
-                      </p>
-                    </td>
-                    <td className="px-3 py-3 text-sm text-[#10231C] whitespace-nowrap">
-                      {fmtNum(item.forecastJun)}
-                    </td>
-                    <td className="px-3 py-3 text-sm text-[#10231C] whitespace-nowrap">
-                      {fmtNum(item.forecastJul)}
-                    </td>
-                    <td className="px-3 py-3 text-sm text-[#10231C] whitespace-nowrap">
-                      {fmtNum(item.forecastAug)}
-                    </td>
-                    <td className="px-3 py-3">
-                      <TrendBadge trend={item.trend} pct={item.trendPct} />
-                    </td>
-                    <td className="px-3 py-3">
-                      <div className="flex items-center gap-2">
-                        <DonutChart
-                          value={item.confidence}
-                          max={100}
-                          size={36}
-                          thickness={4}
-                          color="#024430"
-                          showPercent={false}
-                        />
-                        <span className="text-xs font-semibold text-[#10231C]">
-                          {item.confidence}%
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-3 py-3">
-                      <RiskBadge risk={item.stockoutRisk} />
-                    </td>
-                    <td className="px-3 py-3">
-                      {item.stockoutRisk === "safe" && item.recommendedOrderDate > "2026-07-15" ? (
-                        <span className="text-xs text-[#6B7A73]">Đủ hàng</span>
-                      ) : (
-                        <div>
-                          <p className="text-xs font-semibold text-[#024430] whitespace-nowrap">
-                            Đặt {fmtNum(item.recommendedOrderQty)} đơn vị
-                          </p>
-                          <p className="text-[10px] text-[#6B7A73] whitespace-nowrap">
-                            trước {fmtDate(item.recommendedOrderDate)}
-                          </p>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* AI summary */}
-          <div className="mt-4 p-3 bg-[#F0FDF4] border border-[#BBF7D0] rounded-xl flex items-start gap-2">
-            <span className="text-base flex-shrink-0">💡</span>
-            <p className="text-xs text-[#024430] font-medium">
-              AI đề xuất đặt hàng tổng cộng{" "}
-              <span className="font-bold">195,000 đơn vị</span> trong tháng 6/2026 · Tiết
-              kiệm ước tính <span className="font-bold">12%</span> so với đặt hàng thủ công
-            </p>
-          </div>
-        </CardBody>
-      </Card>
-
-      {/* ── Section 4: NCC Supply Pipeline ── */}
-      <div className="mb-3">
-        <p className="text-sm font-bold text-[#10231C] uppercase tracking-wide">
-          Pipeline từ Nhà sản xuất (NCC)
-        </p>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        {NCC_SUPPLY.map((ncc) => (
-          <Card
-            key={ncc.nccName}
-            className={`border ${
-              ncc.status === "delayed"
-                ? "border-amber-200 bg-amber-50/30"
-                : "border-[#BBF7D0] bg-[#F0FDF4]/50"
-            }`}
-          >
-            <CardBody className="p-5">
-              <div className="flex items-start justify-between gap-2 mb-3">
-                <p className="text-sm font-bold text-[#10231C] leading-tight">{ncc.nccName}</p>
-                <span
-                  className={`text-[11px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0 ${
-                    ncc.status === "on_time"
-                      ? "bg-green-100 text-green-700"
-                      : "bg-amber-100 text-amber-700"
-                  }`}
+    <div className="mt-4 space-y-4">
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[760px] border-collapse border border-[#E4EAE7] rounded-xl">
+          <thead>
+            <tr className="bg-[#F6F8F7] border-b border-[#E4EAE7]">
+              {[
+                "Sản phẩm",
+                "Số HĐ",
+                "Tổng hạn mức",
+                "Tổng đã đặt",
+                "Tổng còn lại",
+                "Khuyến nghị SX",
+              ].map((col) => (
+                <th
+                  key={col}
+                  className="text-left px-3 py-2.5 text-xs font-semibold text-[#6B7A73] whitespace-nowrap"
                 >
-                  {ncc.status === "on_time" ? "✓ Đúng hẹn" : "⚠ Trễ hẹn"}
-                </span>
-              </div>
+                  {col}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {groups.map((g) => {
+              const rec = g.totalRemaining > 50000 ? "Lên kế hoạch SX" : "Đủ tồn kho";
+              return (
+                <tr
+                  key={g.drug}
+                  className="border-b border-[#E4EAE7] hover:bg-[#F6F8F7] transition-colors"
+                >
+                  <td className="px-3 py-3 text-sm font-medium text-[#10231C] whitespace-nowrap">
+                    {g.drug}
+                  </td>
+                  <td className="px-3 py-3 text-sm text-[#10231C] text-center">{g.contracts}</td>
+                  <td className="px-3 py-3 text-sm text-[#10231C] text-right whitespace-nowrap">
+                    {fmtNum(g.totalQuota)} {g.unit}
+                  </td>
+                  <td className="px-3 py-3 text-sm text-[#10231C] text-right whitespace-nowrap">
+                    {fmtNum(g.totalOrdered)}
+                  </td>
+                  <td className="px-3 py-3 text-sm text-[#10231C] text-right whitespace-nowrap">
+                    {fmtNum(g.totalRemaining)}
+                  </td>
+                  <td className="px-3 py-3">
+                    <Chip
+                      color={rec === "Lên kế hoạch SX" ? "primary" : "success"}
+                      variant="flat"
+                      size="sm"
+                    >
+                      {rec}
+                    </Chip>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
 
-              <div className="flex flex-wrap gap-1 mb-3">
-                {ncc.drugs.map((drug) => (
-                  <Chip key={drug} color="primary" variant="flat" size="sm">
-                    {drug.split(" ")[0]}
-                  </Chip>
-                ))}
-              </div>
-
-              <div className="space-y-2 mb-3">
-                <div className="flex justify-between text-xs">
-                  <span className="text-[#6B7A73]">Đang vận chuyển</span>
-                  <span className="font-bold text-[#10231C]">
-                    {fmtNum(ncc.pendingQty)} đơn vị
-                  </span>
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-[#6B7A73]">ETA dự kiến</span>
-                  <span className="font-semibold text-[#10231C]">
-                    {fmtDate(ncc.expectedDate)}
-                  </span>
-                </div>
-              </div>
-
-              <div className="pt-3 border-t border-[#E4EAE7]/60">
-                <div className="flex justify-between text-xs mb-1.5">
-                  <span className="text-[#6B7A73]">Độ tin cậy giao hàng</span>
-                  <span
-                    className={`font-bold ${
-                      ncc.reliability >= 90
-                        ? "text-green-600"
-                        : ncc.reliability >= 80
-                        ? "text-amber-600"
-                        : "text-red-600"
-                    }`}
-                  >
-                    {ncc.reliability}%
-                  </span>
-                </div>
-                <Progress
-                  value={ncc.reliability}
-                  size="sm"
-                  classNames={{
-                    indicator:
-                      ncc.reliability >= 90
-                        ? "bg-green-500"
-                        : ncc.reliability >= 80
-                        ? "bg-amber-500"
-                        : "bg-red-500",
-                  }}
-                />
-              </div>
-
-              {ncc.status === "delayed" && (
-                <div className="mt-3 p-2 bg-amber-100 border border-amber-200 rounded-lg">
-                  <p className="text-[11px] text-amber-700 font-medium">
-                    ⚠ Trễ hẹn — liên hệ NCC để xác nhận lịch giao lại
+      {/* Donut chart for Paracetamol */}
+      {para && (
+        <Card>
+          <CardHeader>
+            <p className="text-sm font-semibold text-[#10231C] pb-2">
+              Paracetamol 500mg — Tỷ lệ sử dụng hạn mức
+            </p>
+          </CardHeader>
+          <CardBody className="pt-0">
+            <div className="flex items-center gap-8">
+              <DonutChart
+                value={para.totalOrdered}
+                max={para.totalQuota}
+                label={`${usagePct(para.totalOrdered, para.totalQuota)}%`}
+                sublabel="đã đặt"
+                color="#024430"
+                size={140}
+                thickness={14}
+                showPercent={false}
+              />
+              <div className="space-y-3">
+                <div>
+                  <p className="text-xs text-[#6B7A73]">Tổng hạn mức</p>
+                  <p className="text-lg font-bold text-[#10231C]">
+                    {fmtNum(para.totalQuota)} viên/năm
                   </p>
                 </div>
-              )}
+                <div>
+                  <p className="text-xs text-[#6B7A73]">Đã đặt</p>
+                  <p className="text-base font-semibold text-[#024430]">
+                    {fmtNum(para.totalOrdered)} viên
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-[#6B7A73]">Còn lại</p>
+                  <p className="text-base font-semibold text-[#10231C]">
+                    {fmtNum(para.totalRemaining)} viên
+                  </p>
+                </div>
+              </div>
+            </div>
+          </CardBody>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+// ─── Tab 3: Xu hướng ─────────────────────────────────────────────────────────
+
+function TabTrend() {
+  const drugs = Object.entries(MONTHLY_HISTORY);
+  const colors = ["#024430", "#3B82F6", "#D97706"];
+
+  return (
+    <div className="mt-4 space-y-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {drugs.map(([drug, history], idx) => (
+          <Card key={drug}>
+            <CardHeader>
+              <p className="text-sm font-semibold text-[#10231C] pb-2 truncate">{drug}</p>
+            </CardHeader>
+            <CardBody className="pt-0">
+              <BarChart
+                data={history.map((v, i) => ({
+                  label: MONTHS[i],
+                  value: v,
+                  color: colors[idx],
+                }))}
+                height={160}
+                color={colors[idx]}
+                formatValue={(v) => `${(v / 1000).toFixed(1)}k`}
+              />
             </CardBody>
           </Card>
         ))}
       </div>
 
-      {/* ── Section 5: Drug demand bar chart ── */}
-      <div className="mb-3">
-        <p className="text-sm font-bold text-[#10231C] uppercase tracking-wide">
-          Phân tích cầu theo mặt hàng
-        </p>
-      </div>
-      <Card className="border border-[#E4EAE7] mb-6">
-        <CardBody className="p-5">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-semibold text-[#10231C]">
-              Top 8 mặt hàng — Nhu cầu tháng hiện tại
-            </p>
-            <div className="flex items-center gap-3 text-xs text-[#6B7A73]">
-              <span className="flex items-center gap-1">
-                <span className="inline-block w-2.5 h-2.5 rounded-sm bg-[#024430]" />
-                Top 2
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="inline-block w-2.5 h-2.5 rounded-sm bg-amber-500" />
-                Mid
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="inline-block w-2.5 h-2.5 rounded-sm bg-blue-500" />
-                Khác
-              </span>
-            </div>
-          </div>
-          <BarChart
-            data={barData}
-            height={200}
-            formatValue={(v) => `${(v / 1000).toFixed(0)}k`}
-          />
-          <div className="mt-3 pt-3 border-t border-[#E4EAE7] flex flex-wrap gap-x-6 gap-y-1">
-            <p className="text-xs text-[#6B7A73]">
-              📊 Paracetamol chiếm <span className="text-[#024430] font-semibold">21%</span> tổng nhu cầu
-            </p>
-            <p className="text-xs text-[#6B7A73]">
-              📈 Amoxicillin tăng <span className="text-green-600 font-semibold">+12% MoM</span>
-            </p>
-            <p className="text-xs text-[#6B7A73]">
-              ☀ Vitamin C tăng mạnh vào <span className="text-amber-600 font-semibold">mùa hè</span>
-            </p>
-          </div>
-        </CardBody>
-      </Card>
-
-      {/* ── Section 6: Stockout prediction timeline ── */}
-      <div className="mb-3">
-        <p className="text-sm font-bold text-[#10231C] uppercase tracking-wide">
-          Ngày dự kiến hết hàng
-        </p>
-      </div>
-      <Card className="border border-[#E4EAE7] mb-6">
-        <CardBody className="p-5">
-          <div className="space-y-3">
-            {FORECAST_DATA.map((item) => {
-              const days = daysOfStock(item);
-              const isOut = days === 0;
-              const isCritical = days > 0 && days < 30;
-              const isWarning = days >= 30 && days <= 60;
-              const isSafe = days > 60;
-
-              const barColor = isOut
-                ? "bg-red-500"
-                : isCritical
-                ? "bg-red-400"
-                : isWarning
-                ? "bg-amber-400"
-                : "bg-green-500";
-
-              const textColor = isOut || isCritical
-                ? "text-red-600"
-                : isWarning
-                ? "text-amber-600"
-                : "text-green-600";
-
-              const stockPct = Math.min(
-                100,
-                (item.currentStock / (item.avgMonthlyDemand * 3)) * 100
-              );
-
-              return (
-                <div
-                  key={item.drug}
-                  className="grid grid-cols-[180px_1fr_160px_120px] items-center gap-4"
-                >
-                  <p className="text-sm font-medium text-[#10231C] truncate">{item.drug}</p>
-
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 h-2 bg-[#E4EAE7] rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all ${barColor}`}
-                        style={{ width: `${stockPct}%` }}
-                      />
-                    </div>
-                    <span className="text-[11px] text-[#6B7A73] whitespace-nowrap w-16 text-right">
-                      {fmtNum(item.currentStock)} đv
-                    </span>
-                  </div>
-
-                  <div className={`text-xs font-semibold ${textColor} whitespace-nowrap`}>
-                    {isOut ? (
-                      <span className="flex items-center gap-1">
-                        <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse inline-block" />
-                        ĐÃ HẾT HÀNG
-                      </span>
-                    ) : isSafe ? (
-                      "Đủ hàng >3 tháng"
-                    ) : (
-                      `Hết hàng: ${stockoutDate(item)}`
-                    )}
-                  </div>
-
-                  <div className="text-right">
-                    <span
-                      className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${
-                        isOut || isCritical
-                          ? "bg-red-100 text-red-700"
-                          : isWarning
-                          ? "bg-amber-100 text-amber-700"
-                          : "bg-green-100 text-green-700"
+      {/* MoM growth table */}
+      <Card>
+        <CardHeader>
+          <p className="text-sm font-semibold text-[#10231C] pb-2">
+            Tốc độ tăng trưởng tháng (MoM %)
+          </p>
+        </CardHeader>
+        <CardBody className="pt-0 overflow-x-auto">
+          <table className="w-full border-collapse border border-[#E4EAE7] rounded-xl min-w-[480px]">
+            <thead>
+              <tr className="bg-[#F6F8F7] border-b border-[#E4EAE7]">
+                <th className="text-left px-3 py-2.5 text-xs font-semibold text-[#6B7A73]">
+                  Sản phẩm
+                </th>
+                {MONTHS.slice(1).map((m, i) => (
+                  <th
+                    key={m}
+                    className="text-right px-3 py-2.5 text-xs font-semibold text-[#6B7A73] whitespace-nowrap"
+                  >
+                    {m} vs {MONTHS[i]}
+                  </th>
+                ))}
+                <th className="text-right px-3 py-2.5 text-xs font-semibold text-[#6B7A73] whitespace-nowrap">
+                  MoM tháng gần nhất
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {drugs.map(([drug, history]) => {
+                const momValues = history.slice(1).map((v, i) => {
+                  const prev = history[i];
+                  if (!prev) return 0;
+                  return Math.round(((v - prev) / prev) * 100);
+                });
+                const lastMom = momPct(history);
+                return (
+                  <tr
+                    key={drug}
+                    className="border-b border-[#E4EAE7] hover:bg-[#F6F8F7] transition-colors"
+                  >
+                    <td className="px-3 py-3 text-sm font-medium text-[#10231C] whitespace-nowrap">
+                      {drug}
+                    </td>
+                    {momValues.map((m, i) => (
+                      <td
+                        key={i}
+                        className={`px-3 py-3 text-sm text-right font-semibold whitespace-nowrap ${
+                          m > 0 ? "text-green-600" : m < 0 ? "text-red-600" : "text-[#6B7A73]"
+                        }`}
+                      >
+                        {m > 0 ? "+" : ""}
+                        {m}%
+                      </td>
+                    ))}
+                    <td
+                      className={`px-3 py-3 text-sm text-right font-bold whitespace-nowrap ${
+                        lastMom > 0
+                          ? "text-green-600"
+                          : lastMom < 0
+                          ? "text-red-600"
+                          : "text-[#6B7A73]"
                       }`}
                     >
-                      {isOut ? "0 ngày" : isSafe ? ">90 ngày" : `${days} ngày`}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="mt-4 pt-3 border-t border-[#E4EAE7] flex items-center gap-6 text-xs text-[#6B7A73]">
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
-              {"Hết hàng / <30 ngày"}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
-              30–60 ngày
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-green-500" />
-              {">"}60 ngày
-            </span>
-          </div>
+                      {lastMom > 0 ? "+" : ""}
+                      {lastMom}%
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </CardBody>
       </Card>
+    </div>
+  );
+}
 
-      {/* Footer action bar */}
-      <div className="flex items-center justify-between p-4 bg-white border border-[#E4EAE7] rounded-2xl">
-        <div>
-          <p className="text-sm font-semibold text-[#10231C]">
-            Xuất báo cáo & Đặt hàng tự động
-          </p>
-          <p className="text-xs text-[#6B7A73] mt-0.5">
-            AI đề xuất 3 đơn đặt hàng khẩn cấp cần xử lý ngay
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Button variant="bordered" size="sm">
-            Xuất PDF
-          </Button>
-          <Button variant="solid" color="primary" size="sm">
-            Tạo đơn đặt hàng AI
-          </Button>
-        </div>
+// ─── Main page ────────────────────────────────────────────────────────────────
+
+const TABS: { key: TabKey; label: string }[] = [
+  { key: "contracts", label: "Theo hợp đồng" },
+  { key: "products", label: "Theo sản phẩm" },
+  { key: "trend", label: "Xu hướng" },
+];
+
+export default function SupplierAggregationPage() {
+  const [activeTab, setActiveTab] = useState<TabKey>("contracts");
+
+  return (
+    <div className="bg-[#F6F8F7] min-h-screen -m-6 p-6">
+      <PageHeader
+        title="Tổng hợp nhu cầu"
+        subtitle="Phân tích nhu cầu đặt hàng theo hợp đồng"
+      />
+
+      {/* KPI row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <Card>
+          <CardBody className="p-4">
+            <p className="text-[10px] text-[#6B7A73] font-semibold uppercase tracking-wide mb-1">
+              Tổng hợp đồng hoạt động
+            </p>
+            <p className="text-2xl font-bold text-[#024430]">5</p>
+            <p className="text-xs text-[#6B7A73] mt-0.5">hợp đồng</p>
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardBody className="p-4">
+            <p className="text-[10px] text-[#6B7A73] font-semibold uppercase tracking-wide mb-1">
+              Tổng giá trị đặt hàng tháng này
+            </p>
+            <p className="text-2xl font-bold text-[#10231C]">187,5 tr</p>
+            <p className="text-xs text-[#6B7A73] mt-0.5">₫ trong tháng</p>
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardBody className="p-4">
+            <p className="text-[10px] text-[#6B7A73] font-semibold uppercase tracking-wide mb-1">
+              Mức sử dụng hạn mức TB
+            </p>
+            <p className="text-2xl font-bold text-[#024430]">34%</p>
+            <div className="mt-2 h-1.5 bg-[#E4EAE7] rounded-full overflow-hidden">
+              <div className="h-full bg-[#024430] rounded-full" style={{ width: "34%" }} />
+            </div>
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardBody className="p-4">
+            <p className="text-[10px] text-[#6B7A73] font-semibold uppercase tracking-wide mb-1">
+              Khách hàng có đơn tháng này
+            </p>
+            <p className="text-2xl font-bold text-[#10231C]">4</p>
+            <p className="text-xs text-[#6B7A73] mt-0.5">/ 5 khách hàng</p>
+          </CardBody>
+        </Card>
       </div>
+
+      {/* Tab navigation */}
+      <Card>
+        <CardBody>
+          {/* Tab strip */}
+          <div className="flex gap-1 bg-[#F6F8F7] p-1 rounded-xl w-fit mb-0">
+            {TABS.map((tab) => (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setActiveTab(tab.key)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  activeTab === tab.key
+                    ? "bg-[#024430] text-white shadow-sm"
+                    : "text-[#6B7A73] hover:text-[#10231C] hover:bg-white"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Tab content */}
+          {activeTab === "contracts" && <TabContracts />}
+          {activeTab === "products" && <TabProducts />}
+          {activeTab === "trend" && <TabTrend />}
+        </CardBody>
+      </Card>
     </div>
   );
 }
