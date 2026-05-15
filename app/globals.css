@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+:root {
+  --brand-primary: #024430;
+  --brand-primary-hover: #056246;
+  --brand-bg: #F6F8F7;
+  --brand-surface: #FFFFFF;
+  --brand-border: #E4EAE7;
+  --brand-text: #10231C;
+  --brand-muted: #6B7A73;
+  --brand-success: #138A5B;
+  --brand-warning: #F59E0B;
+  --brand-danger: #D92D20;
+  --background: #F6F8F7;
+  --foreground: #10231C;
+}
+
+body {
+  background: var(--brand-bg);
+  color: var(--brand-text);
+  font-family: Inter, Arial, Helvetica, sans-serif;
+}
+
+.sidebar-item-active {
+  background: var(--brand-primary);
+  color: white;
+}
+
+.btn-primary {
+  background: var(--brand-primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--brand-primary-hover);
+}
